@@ -21,7 +21,16 @@ export default function ImportModal({ kind, onClose, onImport, hasItems }) {
   async function fromFile(e) {
     const f = e.target.files?.[0];
     e.target.value = '';
+    if (f) loadFile(f);
+  }
+  function onDrop(e) {
+    const f = e.dataTransfer?.files?.[0];
     if (!f) return;
+    e.preventDefault();
+    e.stopPropagation();
+    loadFile(f);
+  }
+  async function loadFile(f) {
     try { setParsed(rowsFromParsed(await parseFile(f), kind)); setText(''); }
     catch (err) { toast('Dosya okunamadı: ' + err.message, 'error'); }
   }
@@ -45,7 +54,7 @@ export default function ImportModal({ kind, onClose, onImport, hasItems }) {
       <div className="import-grid">
         <label className="field">
           <span className="field-label">Excel ya da Word tablosundan kopyalayıp buraya yapıştır</span>
-          <textarea rows={8} value={text} onChange={(e) => fromText(e.target.value)} placeholder={kind === 'words' ? 'merhaba\thello\tсалам\tпривет' : 'Hangisi bir renk?\tmavi\tmasa\tkoşmak\tyarın'} />
+          <textarea rows={8} value={text} onDrop={onDrop} onDragOver={(e) => e.preventDefault()} onChange={(e) => fromText(e.target.value)} placeholder={kind === 'words' ? 'merhaba\thello\tсалам\tпривет' : 'Hangisi bir renk?\tmavi\tmasa\tkoşmak\tyarın'} />
         </label>
         <div className="import-or">
           <span className="muted">ya da</span>

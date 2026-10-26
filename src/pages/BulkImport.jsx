@@ -34,7 +34,16 @@ export default function BulkImport({ user }) {
   async function fromFile(e) {
     const f = e.target.files?.[0];
     e.target.value = '';
+    if (f) loadFile(f);
+  }
+  function onDrop(e) {
+    const f = e.dataTransfer?.files?.[0];
     if (!f) return;
+    e.preventDefault();
+    e.stopPropagation();
+    loadFile(f);
+  }
+  async function loadFile(f) {
     try { setParsed(rowsFromParsed(await parseFile(f), 'bulk')); setText(''); setDone(null); }
     catch (err) { toast('Dosya okunamadı: ' + err.message, 'error'); }
   }
@@ -81,7 +90,7 @@ export default function BulkImport({ user }) {
         </div>
       </div>
 
-      <div className="card stack">
+      <div className="card stack" onDragOver={(e) => e.preventDefault()} onDrop={onDrop}>
         <p>Sütunlar: <strong>Kitap | Ünite | Konu | Türkçe | İngilizce | Kırgızca | Rusça</strong>. Konu sütunu isteğe bağlı. İlk satırda başlıklar varsa sütun sırası önemli değil.</p>
         <p className="muted small">Ünite sütununa "1" ya da "1. Ünite: Yeni Arkadaşlar" yazabilirsin; ünite adı ikinci yazımdan alınır.</p>
         <div className="row">
@@ -89,9 +98,9 @@ export default function BulkImport({ user }) {
             Excel ya da CSV dosyası seç
             <input type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" hidden onChange={fromFile} />
           </label>
-          <span className="muted">ya da tabloyu aşağıya yapıştır</span>
+          <span className="muted">ya da dosyayı buraya sürükle, ya da tabloyu aşağıya yapıştır</span>
         </div>
-        <textarea rows={5} value={text} placeholder={'Kitap\tÜnite\tKonu\tTürkçe\tİngilizce\tKırgızca\tRusça'} onChange={(e) => { setText(e.target.value); setDone(null); setParsed(e.target.value.trim() ? rowsFromParsed(parseText(e.target.value), 'bulk') : null); }} aria-label="Tabloyu yapıştır" />
+        <textarea rows={5} value={text} onDrop={onDrop} placeholder={'Kitap\tÜnite\tKonu\tTürkçe\tİngilizce\tKırgızca\tRusça'} onChange={(e) => { setText(e.target.value); setDone(null); setParsed(e.target.value.trim() ? rowsFromParsed(parseText(e.target.value), 'bulk') : null); }} aria-label="Tabloyu yapıştır" />
       </div>
 
       {parsed && (
