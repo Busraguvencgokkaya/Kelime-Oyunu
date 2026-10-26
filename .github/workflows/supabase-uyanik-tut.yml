@@ -1,0 +1,43 @@
+# Supabase'in ücretsiz projesi 7 gün hiç kullanılmazsa uykuya geçer.
+# Bu görev haftada iki kez veritabanına küçük bir istek gönderir, böylece tatillerde de açık kalır.
+# GitHub, 60 gün hiç değişiklik olmayan depolarda zamanlanmış görevleri durdurduğu için
+# ayda bir küçük bir tarih dosyası da güncellenir.
+
+name: Supabase'i uyanık tut
+
+on:
+  schedule:
+    - cron: '17 3 * * 1,4'   # Pazartesi ve perşembe, 03:17 UTC (Bişkek 09:17)
+  workflow_dispatch: {}       # Elle çalıştırmak için: Actions > bu görev > Run workflow
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Veritabanına istek gönder
+        run: |
+          code=$(curl -s -o /tmp/out.txt -w "%{http_code}" -X POST \
+            "https://pqovlmsqzfvwupfqlghd.supabase.co/rest/v1/rpc/get_assignment_public" \
+            -H "apikey: sb_publishable_6Etgovtazrw1YPS1Let-IA_426OAF12" \
+            -H "Content-Type: application/json" \
+            -d '{"p_slug":"uyanik-tut"}')
+          echo "HTTP $code"; cat /tmp/out.txt; echo
+          test "$code" = "200"
+
+      - uses: actions/checkout@v4
+        if: github.event_name == 'schedule'
+
+      - name: Depoyu aktif tut (ayda bir)
+        if: github.event_name == 'schedule'
+        run: |
+          if [ "$(date -u +%d)" -le 4 ]; then
+            date -u +"%Y-%m-%d %H:%M UTC" > .github/son-kontrol.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+            git add .github/son-kontrol.txt
+            git commit -m "Aylık kontrol" || true
+            git push || true
+          fi
