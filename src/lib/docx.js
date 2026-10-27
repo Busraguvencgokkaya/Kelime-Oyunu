@@ -5,7 +5,8 @@
 import JSZip from 'jszip';
 
 const W = (el, name) => [...el.children].filter((c) => c.nodeName === name);
-const norm = (s) => s.toLocaleLowerCase('tr').replace(/[\s.:()]/g, '');
+// Başlıklar İngilizce ya da Rusça da olabilir: "ENGLISH" Türkçe kurala göre "englısh" olmasın diye ı → i
+const norm = (s) => s.toLocaleLowerCase('tr').replace(/ı/g, 'i').replace(/[\s.:()]/g, '');
 
 function paraText(p) {
   let out = '';

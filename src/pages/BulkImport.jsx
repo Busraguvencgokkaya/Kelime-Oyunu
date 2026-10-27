@@ -71,7 +71,7 @@ export default function BulkImport({ user }) {
 
   async function run() {
     setProgress({ step: 0, total: groups.length });
-    const report = { books: 0, units: 0, sets: 0, words: 0, skipped: 0, images: 0 };
+    const report = { books: 0, units: 0, sets: 0, words: 0, skipped: 0, images: 0, filled: 0 };
     try {
       const books = await api.listBooks();
       const units = await api.listUnits();
@@ -95,7 +95,12 @@ export default function BulkImport({ user }) {
           if (old) {
             // Var olan kelimenin görseli yoksa yeni dosyadaki görseli ekle
             if (!old.image_url && w.img) { old.image_url = await imageUrl(w.img); changed = true; report.images++; }
-            report.skipped++;
+            // Var olan kelimede boş kalan çevirileri yeni dosyadan doldur
+            let filled = false;
+            for (const f of ['en', 'ky', 'ru']) {
+              if (!(old[f] || '').trim() && (w[f] || '').trim()) { old[f] = w[f]; filled = true; }
+            }
+            if (filled) { changed = true; report.filled++; } else report.skipped++;
             continue;
           }
           const { img, ...word } = w;
@@ -188,7 +193,7 @@ export default function BulkImport({ user }) {
       {done && (
         <div className="card note-ok-card">
           <h2 className="h-sub">Yükleme tamamlandı</h2>
-          <p>{done.books} yeni kitap, {done.units} yeni ünite, {done.sets} yeni set oluştu; {done.words} kelime eklendi.{done.images ? ` ${done.images} görsel yüklendi.` : ''}{done.skipped ? ` Zaten var olan ${done.skipped} kelime atlandı.` : ''}</p>
+          <p>{done.books} yeni kitap, {done.units} yeni ünite, {done.sets} yeni set oluştu; {done.words} kelime eklendi.{done.images ? ` ${done.images} görsel yüklendi.` : ''}{done.filled ? ` ${done.filled} kelimenin eksik çevirisi tamamlandı.` : ''}{done.skipped ? ` Zaten var olan ${done.skipped} kelime atlandı.` : ''}</p>
           <a className="btn btn-primary" href="#/">Kitaplara git</a>
         </div>
       )}
