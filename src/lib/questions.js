@@ -2,8 +2,8 @@ import { shuffle } from './util.js';
 
 const clean = (s) => (s || '').trim();
 const key = (s) => clean(s).toLocaleLowerCase('tr');
-// Resimli sorularda parantez içi ipuçlarını gizle: "altı (6)" → "altı" (cevabı ele vermesin)
-const noParen = (s) => clean(String(s || '').replace(/\s*\([^)]*\)/g, '')) || clean(s);
+// Resimli sorularda parantez içi ipuçlarını ve [dil bilgisi] notlarını gizle: "altı (6)" → "altı" (cevabı ele vermesin)
+const noParen = (s) => clean(String(s || '').replace(/\s*\([^)]*\)/g, '').replace(/\s*\[[^\]]*\]/g, '')) || clean(s);
 
 /**
  * Ödevin madde kopyasından oyun soruları üretir.

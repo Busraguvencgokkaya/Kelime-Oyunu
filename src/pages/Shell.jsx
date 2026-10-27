@@ -5,6 +5,7 @@ const NAV = [
   { id: 'kitaplar', href: '#/', label: 'Kitaplar', match: ['kitaplar', 'kitap'] },
   { id: 'setler', href: '#/setler', label: 'Setlerim', match: ['setler', 'set'] },
   { id: 'odevler', href: '#/odevler', label: 'Ödevlerim', match: ['odevler', 'odev'] },
+  { id: 'sinif', href: '#/sinif', label: 'Sınıfta oyna', match: ['sinif'] },
   { id: 'yukle', href: '#/yukle', label: 'Toplu yükle', match: ['yukle'] },
 ];
 

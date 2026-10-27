@@ -41,6 +41,7 @@ export function SetRow({ s, user, onCopied }) {
       </a>
       <div className="row">
         {!mine && <button className="btn btn-ghost btn-sm" onClick={async () => { try { const c = await copySet(s.id); toast('Set kopyalandı.'); onCopied?.(c); } catch (e) { toast(e.message, 'error'); } }}>Kopyala</button>}
+        {s.item_count > 0 && <a className="btn btn-ghost btn-sm" href={`#/sinif?set=${s.id}`}>Sınıfta oyna</a>}
         {s.item_count > 0 && <a className="btn btn-primary btn-sm" href={`#/odev/yeni?set=${s.id}`}>Ödev ver</a>}
       </div>
     </li>

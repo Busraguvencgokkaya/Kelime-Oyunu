@@ -11,6 +11,7 @@ import SetEditor from './pages/SetEditor.jsx';
 import Assignments from './pages/Assignments.jsx';
 import NewAssignment from './pages/NewAssignment.jsx';
 import Play from './pages/Play.jsx';
+import ClassMode from './pages/ClassMode.jsx';
 
 const BulkImport = lazy(() => import('./pages/BulkImport.jsx'));
 const Report = lazy(() => import('./pages/Report.jsx'));
@@ -47,6 +48,7 @@ export default function App() {
   else if (p0 === 'odevler') page = <Assignments />;
   else if (p0 === 'odev' && p1 === 'yeni') page = <NewAssignment query={route.query} user={user} />;
   else if (p0 === 'odev') page = <Report id={p1} />;
+  else if (p0 === 'sinif') page = <ClassMode key={route.query.toString()} query={route.query} user={user} />;
   else page = <Home user={user} />;
 
   return (

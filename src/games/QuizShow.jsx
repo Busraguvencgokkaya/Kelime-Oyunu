@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Prompt, OptionContent, answerRecord, SHAPES } from './common.jsx';
 import { sfx } from '../lib/sound.js';
+import LuckyCards from './LuckyCards.jsx';
 
 const LEVEL_SIZE = 5;
 const BASE = 500;
@@ -10,7 +11,7 @@ const EXTRA_TIME = 10;
 
 export default function QuizShow({ questions, timeLimit = 20, onFinish }) {
   const T = Math.max(5, timeLimit || 20);
-  const [phase, setPhase] = useState('count'); // count | level | play | reveal
+  const [phase, setPhase] = useState('count'); // count | level | cards | play | reveal
   const [count, setCount] = useState(3);
   const [i, setI] = useState(0);
   const [left, setLeft] = useState(T);
@@ -26,6 +27,10 @@ export default function QuizShow({ questions, timeLimit = 20, onFinish }) {
   const qStart = useRef(0);
   const lastTick = useRef(0);
   const scoreRef = useRef(0);
+  // Şans kartı etkileri
+  const fx = useRef({ double: false, speed: 0, shield: false });
+  const [fxView, setFxView] = useState({ double: false, speed: 0, shield: false });
+  const syncFx = () => setFxView({ ...fx.current });
   const q = questions[i];
   const level = Math.floor(i / LEVEL_SIZE) + 1;
   const levels = Math.ceil(questions.length / LEVEL_SIZE);
@@ -63,18 +68,24 @@ export default function QuizShow({ questions, timeLimit = 20, onFinish }) {
     const rem = Math.max(0, limit - ms / 1000);
     answers.current.push(answerRecord(q, o, ms));
     let g = 0;
+    let note = '';
+    const f = fx.current;
     if (o?.correct) {
       const s = streak + 1;
-      g = BASE + Math.round(SPEED * Math.min(1, rem / T)) + (s >= 3 ? STREAK : 0);
+      const speedPart = Math.round(SPEED * Math.min(1, rem / T)) * (f.speed > 0 ? 2 : 1);
+      g = BASE + speedPart + (s >= 3 ? STREAK : 0);
+      if (f.double) { g *= 2; f.double = false; note = '×2!'; }
       setStreak(s);
       sfx.correct();
     } else {
-      setStreak(0);
+      if (f.shield) { f.shield = false; note = 'Kalkan seni korudu!'; } else setStreak(0);
       o ? sfx.wrong() : sfx.timeup();
     }
+    if (f.speed > 0) f.speed--;
+    syncFx();
     scoreRef.current += g;
     setScore(scoreRef.current);
-    setGain({ g, ok: !!o?.correct, timeout: !o, streak: o?.correct ? streak + 1 : 0 });
+    setGain({ g, ok: !!o?.correct, timeout: !o, streak: o?.correct ? streak + 1 : 0, note });
     setPicked(o || { timeout: true });
     setPhase('reveal');
     setTimeout(next, o?.correct ? 1300 : 1900);
@@ -96,8 +107,18 @@ export default function QuizShow({ questions, timeLimit = 20, onFinish }) {
     setI(n);
     if (n % LEVEL_SIZE === 0) {
       setPhase('level'); sfx.level();
-      setTimeout(() => startQuestion(), 1600);
+      setTimeout(() => setPhase('cards'), 1500);
     } else startQuestion();
+  }
+
+  function applyCard(c) {
+    const f = fx.current;
+    if (c.points) { scoreRef.current = Math.max(0, scoreRef.current + c.points); setScore(scoreRef.current); }
+    if (c.id === 'x2') f.double = true;
+    if (c.id === 'speed') f.speed = 3;
+    if (c.id === 'shield') f.shield = true;
+    syncFx();
+    startQuestion();
   }
 
   function useHalf() {
@@ -128,6 +149,7 @@ export default function QuizShow({ questions, timeLimit = 20, onFinish }) {
       <div className="splash-big" key={count}>{count || 'Başla!'}</div>
     </div>
   );
+  if (phase === 'cards') return <LuckyCards level={level - 1} onDone={applyCard} />;
   if (phase === 'level') return (
     <div className="game game-quiz quiz-splash">
       <p className="splash-small">Aferin! Devam!</p>
@@ -140,7 +162,16 @@ export default function QuizShow({ questions, timeLimit = 20, onFinish }) {
   return (
     <div className="game game-quiz">
       <div className="quiz-top">
-        <div className="quiz-score" aria-label="Puan"><span className="quiz-score-n">{score}</span><span className="quiz-score-l">puan</span></div>
+        <div className="quiz-score-wrap">
+          <div className="quiz-score" aria-label="Puan"><span className="quiz-score-n">{score}</span><span className="quiz-score-l">puan</span></div>
+          {(fxView.double || fxView.speed > 0 || fxView.shield) && (
+            <div className="fx-badges" aria-label="Aktif kartlar">
+              {fxView.double && <span title="Sonraki doğru cevap 2 kat">×2</span>}
+              {fxView.speed > 0 && <span title="Hız bonusu 2 kat">⚡{fxView.speed}</span>}
+              {fxView.shield && <span title="Kalkan">🛡</span>}
+            </div>
+          )}
+        </div>
         <div className="quiz-mid">
           <span className="quiz-level">Seviye {level}{levels > 1 ? ` / ${levels}` : ''}</span>
           <span className="game-count">{i + 1} / {questions.length}</span>
@@ -169,8 +200,8 @@ export default function QuizShow({ questions, timeLimit = 20, onFinish }) {
       </div>
       <div className="feedback" aria-live="assertive">
         {gain && (gain.ok
-          ? <span className="fb-ok">+{gain.g} {gain.streak >= 3 ? `, ${gain.streak} doğru üst üste!` : 'Aferin!'}</span>
-          : <span className="fb-bad">{gain.timeout ? 'Süre bitti! ' : ''}Doğrusu: {q.correctText}</span>)}
+          ? <span className="fb-ok">+{gain.g} {gain.note ? `${gain.note} ` : ''}{gain.streak >= 3 ? `${gain.streak} doğru üst üste!` : 'Aferin!'}</span>
+          : <span className="fb-bad">{gain.timeout ? 'Süre bitti! ' : ''}{gain.note ? `${gain.note} ` : ''}Doğrusu: {q.correctText}</span>)}
       </div>
     </div>
   );
