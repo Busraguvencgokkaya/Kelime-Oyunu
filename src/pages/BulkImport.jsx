@@ -9,6 +9,7 @@ export default function BulkImport({ user }) {
   const [parsed, setParsed] = useState(null);
   const [text, setText] = useState('');
   const [split, setSplit] = useState('unit'); // unit | topic
+  const [share, setShare] = useState(true);
   const [progress, setProgress] = useState(null);
   const [done, setDone] = useState(null);
   const toast = useToast();
@@ -68,7 +69,7 @@ export default function BulkImport({ user }) {
         const fresh = g.words.filter((w) => { const k = low(w.tr); if (!k || have.has(k)) return false; have.add(k); return true; });
         report.skipped += g.words.length - fresh.length;
         if (!fresh.length && set) { setProgress({ step: i + 1, total: groups.length }); continue; }
-        const saved = await api.saveSet(set || { title: g.setTitle, kind: 'words', book_id: book.id, unit_id: unit.id, is_public: false }, [...existing, ...fresh]);
+        const saved = await api.saveSet(set || { title: g.setTitle, kind: 'words', book_id: book.id, unit_id: unit.id, is_public: share }, [...existing, ...fresh]);
         if (!set) { sets.push(saved); report.sets++; }
         report.words += fresh.length;
         setProgress({ step: i + 1, total: groups.length });
@@ -125,6 +126,7 @@ export default function BulkImport({ user }) {
               </tbody>
             </table>
           </div>
+          <label className="check-line"><input type="checkbox" checked={share} onChange={(e) => setShare(e.target.checked)} /> Yeni setleri diğer öğretmenlerle paylaş (görüp ödev verebilsinler)</label>
           <div className="row end">
             <button className="btn btn-ghost" onClick={() => { setParsed(null); setText(''); }}>Vazgeç</button>
             <button className="btn btn-primary" disabled={!!progress || !groups.length} onClick={run}>

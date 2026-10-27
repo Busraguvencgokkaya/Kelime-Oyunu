@@ -115,6 +115,9 @@ export const api = {
     return saved;
   },
   async deleteSet(id) { check(await sb.from('sets').delete().eq('id', id)); },
+  async setAllPublic(userId, value) {
+    check(await sb.from('sets').update({ is_public: value }).eq('owner_id', userId));
+  },
 
   // ---------- resim ----------
   async uploadImage(blob, folder = 'img') {

@@ -494,3 +494,7 @@ textarea { resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+.share-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; background: var(--teal-wash); border-radius: var(--r); padding: 0.7rem 1rem; }
+.check-line { display: flex; gap: 0.5rem; align-items: center; cursor: pointer; }
+.check-line input { width: 18px; height: 18px; accent-color: var(--teal); }

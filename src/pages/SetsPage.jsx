@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api/index.js';
-import { Empty, Spinner, useAsync } from '../components/ui.jsx';
+import { Empty, Spinner, useAsync, useToast } from '../components/ui.jsx';
 import { SetRow } from './BookPage.jsx';
 
 export default function SetsPage({ user }) {
@@ -10,11 +10,21 @@ export default function SetsPage({ user }) {
   }, []);
   const [tab, setTab] = useState('mine');
   const [q, setQ] = useState('');
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  async function shareAll(v) {
+    setBusy(true);
+    try { await api.setAllPublic(user.id, v); toast(v ? 'Bütün setlerin paylaşıma açıldı.' : 'Bütün setlerin paylaşımı kapatıldı.'); data.reload(); }
+    catch (e) { toast(e.message, 'error'); }
+    finally { setBusy(false); }
+  }
 
   if (data.loading && !data.data) return <Spinner />;
   if (data.error) return <p className="note note-error">{data.error.message}</p>;
   const { sets, books } = data.data;
   const bookName = Object.fromEntries(books.map((b) => [b.id, b.title]));
+  const mineAll = sets.filter((s) => s.owner_id === user.id);
+  const sharedCount = mineAll.filter((s) => s.is_public).length;
   const list = sets
     .filter((s) => (tab === 'mine' ? s.owner_id === user.id : s.owner_id !== user.id && s.is_public))
     .filter((s) => !q || `${s.title} ${s.topic || ''} ${bookName[s.book_id] || ''}`.toLocaleLowerCase('tr').includes(q.toLocaleLowerCase('tr')));
@@ -37,6 +47,15 @@ export default function SetsPage({ user }) {
         </div>
         <input className="search" type="search" placeholder="Set ara" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
+      {tab === 'mine' && mineAll.length > 0 && (
+        <div className="share-bar">
+          <span>{sharedCount === mineAll.length ? 'Bütün setlerin diğer öğretmenlerle paylaşılıyor.' : `${mineAll.length} setinden ${sharedCount} tanesi paylaşılıyor.`}</span>
+          <div className="row">
+            {sharedCount < mineAll.length && <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => shareAll(true)}>Hepsini paylaş</button>}
+            {sharedCount > 0 && <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => shareAll(false)}>Hepsinin paylaşımını kapat</button>}
+          </div>
+        </div>
+      )}
       {!list.length ? (
         <Empty title={tab === 'mine' ? (q ? 'Aramaya uyan set yok' : 'Henüz setin yok') : 'Paylaşılan set yok'}>
           {tab === 'mine' ? 'Yeni bir kelime ya da soru seti oluştur veya Excel dosyasından toplu yükle.' : 'Bir öğretmen setini "herkese açık" yapınca burada görünür.'}

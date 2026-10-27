@@ -131,6 +131,10 @@ export const api = {
     save();
     return wait(s);
   },
+  async setAllPublic(userId, value) {
+    load().sets.forEach((s) => { if (s.owner_id === userId) s.is_public = value; });
+    save();
+  },
   async deleteSet(id) {
     const d = load();
     d.sets = d.sets.filter((s) => s.id !== id);
