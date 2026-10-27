@@ -22,7 +22,8 @@ export default function BulkImport({ user }) {
       const u = parseUnit(r.unit);
       const topic = (r.topic || '').trim();
       const unitTitle = u.title;
-      const setTitle = split === 'topic' && topic ? `${u.number}. Ünite: ${topic}` : `${u.number}. Ünite kelimeleri`;
+      const uLabel = u.number === 0 ? 'Başlangıç Ünitesi' : `${u.number}. Ünite`;
+      const setTitle = split === 'topic' && topic ? `${uLabel}: ${topic}` : `${uLabel} kelimeleri`;
       const key = `${low(book)}|${u.number}|${setTitle}`;
       if (!g.has(key)) g.set(key, { book, unit: u.number, unitTitle, setTitle, words: [] });
       const grp = g.get(key);
