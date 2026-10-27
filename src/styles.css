@@ -498,3 +498,20 @@ textarea { resize: vertical; }
 .share-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; background: var(--teal-wash); border-radius: var(--r); padding: 0.7rem 1rem; }
 .check-line { display: flex; gap: 0.5rem; align-items: center; cursor: pointer; }
 .check-line input { width: 18px; height: 18px; accent-color: var(--teal); }
+
+.sample { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; }
+.sample span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.sample img { width: 26px; height: 26px; object-fit: contain; }
+
+.prompt-line { display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; }
+.speak-btn { width: 52px; height: 52px; border-radius: 50%; border: 2.5px solid var(--ink); background: var(--sun); box-shadow: 0 3px 0 var(--ink); font-size: 1.4rem; cursor: pointer; flex-shrink: 0; }
+.speak-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.opt-img-big { max-height: clamp(70px, 15vh, 140px); max-width: 80%; background: #fff; border-radius: 14px; padding: 6px; }
+/* Resim şıkları: telefonda da 2x2 */
+.options:has(.opt-img-big) { grid-template-columns: 1fr 1fr !important; }
+.opt:has(.opt-img-big) { padding: 0.6rem; }
+@media (max-width: 560px) {
+  .opt:has(.opt-img-big) { min-height: 0; }
+  .opt-img-big { max-height: 26vw; }
+  .opt:has(.opt-img-big) .opt-shape { left: 0.5rem; top: 0.9rem; transform: none; font-size: 1rem; }
+}

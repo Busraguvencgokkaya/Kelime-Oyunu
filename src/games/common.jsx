@@ -1,4 +1,7 @@
 // Oyunların ortak parçaları
+import { useEffect } from 'react';
+import { speak, stopSpeaking, useTurkishVoice } from '../lib/speech.js';
+import { isMuted } from '../lib/sound.js';
 
 export function sizeClass(text = '') {
   const n = text.length;
@@ -6,16 +9,31 @@ export function sizeClass(text = '') {
 }
 
 export function Prompt({ q }) {
+  const canSpeak = useTurkishVoice() && q.promptLang === 'tr' && !!q.prompt;
+  // "Türkçe → resim" sorularında kelime soru açılınca bir kez okunur
+  useEffect(() => {
+    if (canSpeak && q.speak && !isMuted()) {
+      const t = setTimeout(() => speak(q.prompt), 250);
+      return () => { clearTimeout(t); stopSpeaking(); };
+    }
+    return () => stopSpeaking();
+  }, [q.id, canSpeak]);
   return (
     <div className={`prompt ${q.image ? 'has-img' : ''}`}>
       {q.image && <img className="prompt-img" src={q.image} alt="" />}
-      {q.prompt && <div className={`prompt-text ${sizeClass(q.prompt)}`} lang={q.promptLang === 'ky' ? 'ky' : q.promptLang === 'ru' ? 'ru' : q.promptLang === 'en' ? 'en' : 'tr'}>{q.prompt}</div>}
+      {q.prompt && (
+        <div className="prompt-line">
+          <div className={`prompt-text ${sizeClass(q.prompt)}`} lang={q.promptLang === 'ky' ? 'ky' : q.promptLang === 'ru' ? 'ru' : q.promptLang === 'en' ? 'en' : 'tr'}>{q.prompt}</div>
+          {canSpeak && <button type="button" className="speak-btn" onClick={() => speak(q.prompt)} aria-label="Sesli oku">🔊</button>}
+        </div>
+      )}
       {q.hint && <div className="prompt-hint">{q.hint}</div>}
     </div>
   );
 }
 
 export function OptionContent({ o }) {
+  if (o.imgOnly) return <img src={o.image} alt={o.text} className="opt-img opt-img-big" />;
   return <>
     {o.image && <img src={o.image} alt="" className="opt-img" />}
     {o.text && <span className={`opt-text ${sizeClass(o.text)}`}>{o.text}</span>}

@@ -32,7 +32,7 @@ export default function App() {
   const [p0, p1] = route.parts;
 
   // Öğrenci bağlantısı: giriş gerekmez
-  if (p0 === 'o') return <Play slug={p1} />;
+  if (p0 === 'o') return <Play key={p1} slug={p1} />;
 
   if (user === undefined) return <div className="page-center"><Spinner /></div>;
   if (p0 === 'sifre' && user) return <NewPassword />;

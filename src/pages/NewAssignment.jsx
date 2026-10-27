@@ -9,7 +9,8 @@ const DIRS = [
   { id: 'mixed', label: 'Karışık', desc: 'Bazen Türkçe, bazen ana dil sorulur' },
   { id: 'tr_to_l', label: 'Türkçe → ana dil', desc: 'Türkçe kelime görünür, anlamı seçilir' },
   { id: 'l_to_tr', label: 'Ana dil → Türkçe', desc: 'Anlamı görünür, Türkçesi seçilir' },
-  { id: 'image', label: 'Resim → Türkçe', desc: 'Resmi olan kelimelerde resim gösterilir' },
+  { id: 'image', label: 'Resim → Türkçe', desc: 'Resim gösterilir, Türkçesi seçilir' },
+  { id: 'tr_to_img', label: 'Türkçe → resim', desc: 'Türkçe kelime yazılır ve okunur, doğru resim seçilir. Okumayı yeni öğrenenler için' },
 ];
 
 export default function NewAssignment({ query, user }) {
@@ -28,7 +29,8 @@ export default function NewAssignment({ query, user }) {
 
   const s = set.data;
   const n = s?.items?.length || 0;
-  const hasImages = s?.items?.some((it) => it.image_url);
+  const imgCount = s?.items?.filter((it) => it.image_url).length || 0;
+  const hasImages = imgCount >= 4;
 
   useEffect(() => {
     if (!s) return;
@@ -95,7 +97,7 @@ export default function NewAssignment({ query, user }) {
             ))}
           </select>
           {set.loading && setId && <Spinner />}
-          {s && <p className="muted small">{KIND_LABEL[s.kind]}, {n} madde{hasImages ? ', resimli maddeler var' : ''}.</p>}
+          {s && <p className="muted small">{KIND_LABEL[s.kind]}, {n} madde{imgCount ? `, ${imgCount} tanesi resimli` : ''}.</p>}
         </section>
 
         {s && <>
@@ -129,6 +131,7 @@ export default function NewAssignment({ query, user }) {
                     </label>
                   ))}
                 </div>
+                <span className="field-hint">{DIRS.find((d) => d.id === f.direction)?.desc}{(f.direction === 'image' || f.direction === 'tr_to_img') && imgCount < n ? `. Önce resimli ${imgCount} kelime sorulur.` : ''}</span>
               </div>
               <div className="field">
                 <span className="field-label">Öğrencinin seçebileceği diller</span>
